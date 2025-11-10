@@ -63,13 +63,13 @@ export default function Navbar() {
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", duration: 0.8 }}
-        className="fixed top-0 left-0 w-full z-100 backdrop-blur-xl border-b border-[#dfe7dd] bg-white/80"
+        className="fixed top-0 left-0 w-full z-100 backdrop-blur-xl border-b-2 border-[#dfe7dd] bg-white/80 "
       >
         <div className="flex items-center justify-between px-4 py-3 md:py-4 max-w-7xl mx-auto">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <img
-              src="/images/anubha_logo.png"
+              src="/images/eatrightlogo.jpg"
               alt="logo"
               className="w-15 h-15 rounded-md bg-white shadow-sm"
               draggable={false}
