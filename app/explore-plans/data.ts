@@ -28,18 +28,6 @@ smart, sustainable changes that lead to visible transformation.
 `,
     packages: [
       {
-        name: "1 Month Package",
-        slug: "weight-loss-1-month",
-        duration: "3–4 kg weight loss",
-        price: "₹6,800",
-        features: [
-          "Weekly diet plans",
-          "Daily weight check",
-          "Monthly full body measurement follow-up",
-          "1-month maintenance and healthy habit guide",
-        ],
-      },
-      {
         name: "3 Month Package",
         slug: "weight-loss-3-month",
         duration: "8–10 kg weight loss",

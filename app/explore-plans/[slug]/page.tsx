@@ -16,13 +16,11 @@ export default function ExplorePlanPage() {
 
   if (!plan) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Plan Not Found
-        </h1>
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-slate-900">Plan Not Found</h1>
         <Link
           href="/services"
-          className="mt-3 text-emerald-600 hover:underline font-medium"
+          className="mt-3 text-[#318a63] hover:underline font-medium"
         >
           ← Back to Services
         </Link>
@@ -31,7 +29,7 @@ export default function ExplorePlanPage() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-20 px-6 md:px-10">
+    <main className="min-h-screen py-24 px-6 md:px-10">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
@@ -40,10 +38,10 @@ export default function ExplorePlanPage() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
             {plan.name}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-lg whitespace-pre-line">
+          <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-line">
             {plan.longDescription.trim()}
           </p>
         </motion.div>
@@ -56,19 +54,21 @@ export default function ExplorePlanPage() {
                 key={pkg.slug}
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md p-6 flex flex-col justify-between"
+                className="bg-white/90 border border-[#dfe7dd] rounded-3xl shadow-(--shadow-soft) hover:shadow-xl p-6 flex flex-col justify-between backdrop-blur-sm transition-shadow"
               >
                 <div>
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
+                  <h2 className="text-2xl font-semibold text-slate-900 mb-1">
                     {pkg.name}
                   </h2>
                   {pkg.duration && (
-                    <p className="text-sm text-gray-500 mb-3">{pkg.duration}</p>
+                    <p className="text-sm text-slate-500 mb-3">
+                      {pkg.duration}
+                    </p>
                   )}
-                  <p className="text-emerald-600 dark:text-emerald-400 text-xl font-bold mb-4">
+                  <p className="text-[#318a63] text-xl font-bold mb-4">
                     {pkg.price}
                   </p>
-                  <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1 mb-5">
+                  <ul className="list-disc list-inside text-sm text-slate-600 space-y-1 mb-5 marker:text-[#7fb77e]">
                     {pkg.features.map((f, i) => (
                       <li key={i}>{f}</li>
                     ))}
@@ -77,7 +77,7 @@ export default function ExplorePlanPage() {
 
                 <Link
                   href={`/book-appointment?plan=${pkg.slug}`}
-                  className="rounded-full bg-emerald-600 text-white py-2.5 text-sm font-medium text-center hover:opacity-90 transition mt-auto"
+                  className="rounded-full bg-linear-to-r from-[#7fb77e] via-[#6fbb9c] to-[#64a0c8] text-white py-2.5 text-sm font-medium text-center shadow-lg hover:shadow-xl hover:brightness-105 transition mt-auto"
                 >
                   Buy Plan
                 </Link>
@@ -90,18 +90,18 @@ export default function ExplorePlanPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-8 text-center"
+            className="bg-white/90 border border-[#dfe7dd] rounded-3xl shadow-(--shadow-soft) p-8 text-center backdrop-blur-sm"
           >
-            <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+            <h2 className="text-3xl font-semibold text-slate-900 mb-3">
               {plan.name}
             </h2>
             {plan.price && (
-              <p className="text-emerald-600 dark:text-emerald-400 text-2xl font-bold mb-6">
+              <p className="text-[#318a63] text-2xl font-bold mb-6">
                 {plan.price}
               </p>
             )}
             {plan.features && (
-              <ul className="list-disc list-inside text-gray-600 dark:text-gray-400 text-sm mb-8 max-w-md mx-auto text-left">
+              <ul className="list-disc list-inside text-slate-600 text-sm mb-8 max-w-md mx-auto text-left marker:text-[#7fb77e]">
                 {plan.features.map((f, i) => (
                   <li key={i}>{f}</li>
                 ))}
@@ -109,7 +109,7 @@ export default function ExplorePlanPage() {
             )}
             <Link
               href={`/book-appointment?plan=${plan.slug}`}
-              className="inline-block rounded-full bg-emerald-600 text-white px-8 py-3 text-base font-medium hover:opacity-90 transition"
+              className="inline-block rounded-full bg-linear-to-r from-[#7fb77e] via-[#6fbb9c] to-[#64a0c8] text-white px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl hover:brightness-105 transition"
             >
               Buy Plan
             </Link>
@@ -119,7 +119,7 @@ export default function ExplorePlanPage() {
         <div className="mt-12 text-center">
           <Link
             href="/services"
-            className="text-emerald-600 hover:underline font-medium"
+            className="text-[#318a63] hover:underline font-medium"
           >
             ← Back to Services
           </Link>

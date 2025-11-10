@@ -63,12 +63,9 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section
-      id="faq"
-      className="w-full bg-neutral-50 dark:bg-neutral-950 py-20 px-6 md:px-10 border-t border-gray-200 dark:border-gray-800"
-    >
+    <section id="faq" className="w-full py-20 px-6 md:px-10">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+        <h2 className="text-4xl font-bold text-center text-slate-900 mb-10">
           Frequently Asked Questions
         </h2>
 
@@ -76,10 +73,10 @@ export default function FAQSection() {
           {faqs.map((faq, i) => (
             <motion.div
               key={i}
-              className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 shadow-sm"
+              className="border border-[#dfe7dd] rounded-3xl overflow-hidden bg-white/90 shadow-(--shadow-soft)"
             >
               <button
-                className="w-full flex justify-between items-center text-left px-6 py-4 font-medium text-gray-800 dark:text-gray-100"
+                className="w-full flex justify-between items-center text-left px-6 py-4 font-medium text-slate-800"
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
               >
                 <span>{faq.q}</span>
@@ -87,7 +84,7 @@ export default function FAQSection() {
                   animate={{ rotate: openIndex === i ? 180 : 0 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <ChevronDown className="w-5 h-5 text-[#7fb77e]" />
                 </motion.div>
               </button>
 
@@ -98,7 +95,7 @@ export default function FAQSection() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="px-6 pb-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed"
+                    className="px-6 pb-5 text-slate-600 text-sm leading-relaxed"
                   >
                     {faq.a}
                   </motion.div>
