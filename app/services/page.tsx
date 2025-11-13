@@ -114,7 +114,7 @@ export default function ServicesPage() {
 
           <div className="mt-5 md:mt-0 flex justify-center md:justify-end">
             <Link
-              href="/services/general-consultation"
+              href="/book/user-details?plan=general-consultation&price=1000"
               className="
                 inline-block 
                 rounded-full 
