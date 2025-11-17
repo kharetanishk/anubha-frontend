@@ -12,6 +12,23 @@ const navLinks = [
   { href: "#faq", label: "FAQ", scroll: true },
 ];
 
+const userLinks = [
+  { href: "/login", label: "Login" },
+  {
+    href: "/register",
+    label: "Register",
+  },
+];
+
+const userDropdownVariant: Variants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.3 },
+  }),
+};
+
 const navLinkVariant: Variants = {
   hidden: { opacity: 0, y: -20 },
   visible: (i: number) => ({
@@ -43,6 +60,9 @@ export default function Navbar() {
   useEffect(() => {
     if (menuOpen) setUserMenuOpen(false);
   }, [menuOpen]);
+  useEffect(() => {
+    if (userMenuOpen) setMenuOpen(false);
+  }, [userMenuOpen]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -130,28 +150,40 @@ export default function Navbar() {
                 className="p-2 rounded-full bg-white/80 border border-[#dfe7dd] hover:bg-white transition flex items-center justify-center cursor-pointer gap-2"
               >
                 <User className="text-emerald-700" size={25} />
-                <p>User</p>
               </button>
 
-              {/* Dropdown Desktop */}
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-[#367228] py-2 z-[460]">
-                  <Link
-                    href="/login"
-                    className="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition border-b"
-                    onClick={() => setUserMenuOpen(false)}
+              <AnimatePresence>
+                {userMenuOpen && (
+                  <motion.div
+                    key="desktopUserMenu"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-[#367228] py-4 z-[460]"
                   >
-                    Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
+                    {userLinks.map((link, i) => (
+                      <motion.div
+                        key={link.href}
+                        custom={i}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        variants={userDropdownVariant}
+                      >
+                        <Link
+                          href={link.href}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 
+                       transition text-[15px] font-medium"
+                        >
+                          {link.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
@@ -189,24 +221,52 @@ export default function Navbar() {
       )}
 
       {/* User Dropdown (Mobile View) */}
-      {userMenuOpen && (
-        <div className="fixed top-[64px] right-4 w-40 bg-white rounded-xl shadow-lg border border-[#1c3715] py-2 z-[460] md:hidden">
-          <Link
-            href="/login"
-            className="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition border-b"
-            onClick={() => setUserMenuOpen(false)}
-          >
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition"
-            onClick={() => setUserMenuOpen(false)}
-          >
-            Register
-          </Link>
-        </div>
-      )}
+      <AnimatePresence>
+        {userMenuOpen && (
+          <>
+            {/* Dim Background */}
+            <motion.div
+              key="userOverlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 bg-emerald-900/30 z-[400]"
+              onClick={() => setUserMenuOpen(false)}
+            />
+
+            {/* User Dropdown Menu (animated same as mobile menu) */}
+            <motion.div
+              key="userMenu"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="fixed top-[64px] left-0 right-0 md:hidden flex flex-col items-center gap-4 py-6 
+                   border-t border-[#dfe7dd] bg-white/95 backdrop-blur-md z-[450] rounded-b-2xl shadow-xl"
+            >
+              {userLinks.map((link, i) => (
+                <motion.div
+                  key={link.href}
+                  custom={i}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={userDropdownVariant}
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setUserMenuOpen(false)}
+                    className="block text-slate-700 hover:text-emerald-700 text-lg font-medium"
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* MOBILE MENU OVERLAY + MENU */}
       <AnimatePresence>

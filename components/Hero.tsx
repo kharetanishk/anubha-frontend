@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import Testimonials from "./Testimonials";
 import FAQSection from "@/components/FAQSection";
 import HowItWorks from "@/components/HowItWorks";
 import OnlineProgram from "@/components/OnlineProgram";
+
 import About from "./About";
 
 export default function Hero() {
@@ -230,6 +232,16 @@ export default function Hero() {
         className="relative z-20 mt-6 w-full max-w-4xl mx-auto px-6"
       >
         <About />
+      </motion.div>
+      {/* --- Testimonials Section --- */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7 }}
+        className="relative z-20 w-full mt-24"
+      >
+        <Testimonials />
       </motion.div>
 
       {/* Other sections */}
