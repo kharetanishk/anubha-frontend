@@ -2,12 +2,14 @@ import { useBookingForm } from "./BookingFormContext";
 import { validationConfig } from "./validationConfig";
 import { BookingForm } from "./BookingFormContext";
 
-export function useStepValidator(stepId: string) {
+// Allowed step IDs inferred from validationConfig
+type StepId = keyof typeof validationConfig;
+
+export function useStepValidator(stepId: StepId) {
   const { form } = useBookingForm();
 
-  const requiredFields = validationConfig[stepId] || [];
+  const requiredFields = validationConfig[stepId];
 
-  // Returns true/false based on completeness
   function validate() {
     return requiredFields.every((field) => {
       const value = form[field as keyof BookingForm];
@@ -15,7 +17,6 @@ export function useStepValidator(stepId: string) {
     });
   }
 
-  // Returns the first field that is missing
   function getFirstMissingField() {
     return requiredFields.find((field) => {
       const value = form[field as keyof BookingForm];

@@ -13,4 +13,5 @@ export const validationConfig = {
     "sleepTime",
     "sleepQuality",
   ],
-};
+} as const;
+
