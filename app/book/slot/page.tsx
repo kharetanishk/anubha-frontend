@@ -10,12 +10,10 @@ export default function SlotPage() {
   const router = useRouter();
 
   /* -------------------------------------------------
-      1️⃣ HARD BLOCK DIRECT ACCESS
+      BLOCK DIRECT ACCESS
   -------------------------------------------------- */
   useEffect(() => {
-    if (!form.planSlug) {
-      router.replace("/services");
-    }
+    if (!form.planSlug) router.replace("/services");
   }, [form.planSlug]);
 
   /* -------------------------------------------------
@@ -25,13 +23,9 @@ export default function SlotPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState("");
 
-  /* -------------------------------------------------
-      RESTORE MODE IF ALREADY SAVED
-  -------------------------------------------------- */
   useEffect(() => {
-    if (form.appointmentMode) {
+    if (form.appointmentMode)
       setMode(form.appointmentMode as "In-person" | "Online");
-    }
   }, [form.appointmentMode]);
 
   /* -------------------------------------------------
@@ -40,7 +34,7 @@ export default function SlotPage() {
   const offlineSlots = [
     "10:00 AM – 10:40 AM",
     "11:00 AM – 11:40 AM",
-    "12:00 PM – 12:40 AM",
+    "12:00 PM – 12:40 PM",
   ];
 
   const onlineSlots = [
@@ -55,7 +49,7 @@ export default function SlotPage() {
   const activeSlots = mode === "In-person" ? offlineSlots : onlineSlots;
 
   /* -------------------------------------------------
-      CALENDAR
+      CALENDAR SETUP
   -------------------------------------------------- */
   const today = useMemo(() => {
     const d = new Date();
@@ -74,13 +68,8 @@ export default function SlotPage() {
   const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const maxMonth = new Date(today.getFullYear(), today.getMonth() + 2, 1);
 
-  function isPast(date: Date) {
-    return date < today;
-  }
-
-  function isSunday(date: Date) {
-    return date.getDay() === 0;
-  }
+  const isPast = (date: Date) => date < today;
+  const isSunday = (date: Date) => date.getDay() === 0;
 
   function selectDate(day: number) {
     const d = new Date(y, m, day);
@@ -92,12 +81,8 @@ export default function SlotPage() {
     setSelectedTime("");
   }
 
-  /* -------------------------------------------------
-      BOUND MONTH SWITCH
-  -------------------------------------------------- */
-  function changeMonth(dir: "prev" | "next") {
+  function changeMonth(dir: "next" | "prev") {
     const next = dir === "next" ? new Date(y, m + 1, 1) : new Date(y, m - 1, 1);
-
     if (next < minMonth || next > maxMonth) return;
 
     setCurrentMonth(next);
@@ -106,11 +91,33 @@ export default function SlotPage() {
   }
 
   /* -------------------------------------------------
-      CONTINUE → PAYMENT
+      TIME SLOT: Disable Past Times (Today Only)
+  -------------------------------------------------- */
+  function parseSlotStart(slot: string) {
+    const [start] = slot.split("–").map((s) => s.trim());
+    return new Date(`${selectedDate?.toDateString()} ${start}`);
+  }
+
+  function isPastSlot(slot: string) {
+    if (!selectedDate) return false;
+
+    const now = new Date();
+    const slotStart = parseSlotStart(slot);
+
+    // If selected date is today, block past times
+    if (selectedDate.toDateString() === now.toDateString()) {
+      return slotStart < now;
+    }
+
+    return false;
+  }
+
+  /* -------------------------------------------------
+      CONTINUE HANDLER
   -------------------------------------------------- */
   function onNext() {
     if (!selectedDate || !selectedTime) {
-      alert("Please select a date and time.");
+      alert("Please select both date and time.");
       return;
     }
 
@@ -124,7 +131,7 @@ export default function SlotPage() {
   }
 
   /* -------------------------------------------------
-      UI
+      UI RENDER
   -------------------------------------------------- */
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#f9fcfa] to-[#f1f7f3] py-10 px-4 flex justify-center">
@@ -250,20 +257,29 @@ export default function SlotPage() {
             <p className="text-slate-500 text-sm">Select a date first.</p>
           ) : (
             <div className="space-y-3">
-              {activeSlots.map((slot) => (
-                <button
-                  key={slot}
-                  onClick={() => setSelectedTime(slot)}
-                  className={`w-full px-4 py-4 rounded-lg border text-sm flex justify-between transition ${
-                    selectedTime === slot
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "bg-white text-slate-700 border-slate-300 hover:bg-emerald-50"
-                  }`}
-                >
-                  {slot}
-                  <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-                </button>
-              ))}
+              {activeSlots.map((slot) => {
+                const disabled = isPastSlot(slot);
+
+                return (
+                  <button
+                    key={slot}
+                    disabled={disabled}
+                    onClick={() => setSelectedTime(slot)}
+                    className={`w-full px-4 py-4 rounded-lg border text-sm flex justify-between transition ${
+                      disabled
+                        ? "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed"
+                        : selectedTime === slot
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-white text-slate-700 border-slate-300 hover:bg-emerald-50"
+                    }`}
+                  >
+                    {slot}
+                    {!disabled && (
+                      <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

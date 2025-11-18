@@ -26,7 +26,6 @@ export default function UserDetailsPage() {
       1️⃣ IF NO PLAN SELECTED → BLOCK PAGE
   --------------------------------------------------*/
   useEffect(() => {
-    // Agar user direct URL se aaya ho
     if (!form.planSlug || !form.planName || !form.planPrice) {
       router.replace("/services");
     }
@@ -46,14 +45,18 @@ export default function UserDetailsPage() {
       case 4:
         return "lifestyle";
       case 5:
-        return "review";
+        return null; // review step → no validation needed
       default:
         return "user-details";
     }
   }
 
   const stepId = stepIndexToId(internalStep);
-  const { validate, getFirstMissingField } = useStepValidator(stepId);
+
+  // Only use validator for steps 1–4
+  const validator = stepId ? useStepValidator(stepId) : null;
+  const validate = validator?.validate;
+  const getFirstMissingField = validator?.getFirstMissingField;
 
   /* -------------------------------------------------
       NEXT BUTTON
@@ -61,15 +64,18 @@ export default function UserDetailsPage() {
   function next() {
     setError(null);
 
-    const ok = validate();
-    if (!ok) {
-      const missing = getFirstMissingField();
-      setError(
-        missing
-          ? `Please fill the required field: ${toHumanLabel(missing)}`
-          : "Please complete all required fields."
-      );
-      return;
+    // Only validate if validator exists (steps 1–4)
+    if (validate) {
+      const ok = validate();
+      if (!ok) {
+        const missing = getFirstMissingField?.();
+        setError(
+          missing
+            ? `Please fill the required field: ${toHumanLabel(missing)}`
+            : "Please complete all required fields."
+        );
+        return;
+      }
     }
 
     if (internalStep >= total) {
@@ -125,7 +131,6 @@ export default function UserDetailsPage() {
               Booking: {form.planName}
               {form.planPackageName ? ` — ${form.planPackageName}` : ""}
             </p>
-
             <p className="text-emerald-700 text-sm sm:text-base">
               Price: {form.planPrice}
             </p>

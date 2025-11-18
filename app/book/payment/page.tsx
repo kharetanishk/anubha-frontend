@@ -33,7 +33,7 @@ export default function PaymentPage() {
   /* -------------------------------------------------
       DATE FORMATTER
   -------------------------------------------------- */
-  function formatDate(d: string | null) {
+  function formatDate(d: string | null | undefined) {
     if (!d) return "";
     const date = new Date(d);
     return date.toLocaleDateString("en-IN", {
@@ -62,7 +62,9 @@ export default function PaymentPage() {
       } catch {}
 
       // confetti
-      const confetti = (await import("canvas-confetti")).default;
+      // confetti (Next.js safe)
+      const { default: confetti } = await import("canvas-confetti");
+
       confetti({
         particleCount: 150,
         spread: 65,
