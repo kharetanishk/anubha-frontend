@@ -9,7 +9,7 @@ export default function Login() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [otp, setOtp] = useState(Array(4).fill("")); // 👉 4 BOXES NOW
   const [otpSent, setOtpSent] = useState(false);
 
   const [loadingOtp, setLoadingOtp] = useState(false);
@@ -20,7 +20,7 @@ export default function Login() {
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  const otpRefs = Array.from({ length: 6 }, () =>
+  const otpRefs = Array.from({ length: 4 }, () =>
     useRef<HTMLInputElement | null>(null)
   );
 
@@ -81,7 +81,7 @@ export default function Login() {
 
       setErrors((prev) => ({ ...prev, otp: "" }));
 
-      if (value && index < 5) otpRefs[index + 1].current?.focus();
+      if (value && index < 3) otpRefs[index + 1].current?.focus();
     }
   };
 
@@ -92,7 +92,8 @@ export default function Login() {
   const handleVerifyOtp = () => {
     const otpValue = otp.join("");
     const newErrors: any = {};
-    if (otpValue.length !== 6) newErrors.otp = "Enter full 6-digit OTP.";
+
+    if (otpValue.length !== 4) newErrors.otp = "Enter full 4-digit OTP.";
 
     setErrors(newErrors);
 
@@ -157,8 +158,8 @@ export default function Login() {
             onClick={handleGetOtp}
             disabled={loadingOtp}
             className={`w-full bg-emerald-700 text-white p-3 rounded-xl font-semibold mt-3 
-            shadow-lg hover:bg-emerald-800 transition 
-            ${loadingOtp ? "opacity-70 cursor-not-allowed" : ""}`}
+              shadow-lg hover:bg-emerald-800 transition 
+              ${loadingOtp ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {loadingOtp ? "Sending OTP..." : "Get OTP"}
           </motion.button>
@@ -176,7 +177,8 @@ export default function Login() {
               Enter OTP
             </label>
 
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-3 mb-2">
+            {/* RESPONSIVE 4-BOX OTP */}
+            <div className="flex justify-center gap-3 sm:gap-4 mt-3 mb-2">
               {otp.map((digit, index) => (
                 <motion.input
                   key={index}
@@ -190,17 +192,17 @@ export default function Login() {
                     e.key === "Backspace" && handleBackspace(digit, index)
                   }
                   className="
-        w-10 h-10                       /* ultra small screens */
-        xs:w-11 xs:h-11                 /* 360px+ */
-        sm:w-12 sm:h-12                 /* 480px+ */
-        md:w-14 md:h-14                 /* tablets */
-        rounded-xl bg-white/80 text-center
-        border border-emerald-300 focus:border-emerald-600
-        outline-none text-lg sm:text-xl font-semibold
-        shadow-[0_0_12px_rgba(16,185,129,0.25)]
-        focus:shadow-[0_0_18px_rgba(16,185,129,0.55)]
-        transition-all
-      "
+                    w-12 h-12 
+                    xs:w-14 xs:h-14
+                    sm:w-16 sm:h-16
+                    md:w-18 md:h-18
+                    rounded-xl bg-white/80 text-center
+                    border border-emerald-300 focus:border-emerald-600
+                    outline-none text-xl sm:text-2xl font-semibold
+                    shadow-[0_0_12px_rgba(16,185,129,0.25)]
+                    focus:shadow-[0_0_18px_rgba(16,185,129,0.55)]
+                    transition-all
+                  "
                 />
               ))}
             </div>
@@ -232,14 +234,15 @@ export default function Login() {
               onClick={handleVerifyOtp}
               disabled={loadingVerify}
               className={`w-full bg-emerald-700 text-white p-3 mt-5 rounded-xl font-semibold 
-              hover:bg-emerald-800 transition shadow-lg
-              ${loadingVerify ? "opacity-70 cursor-not-allowed" : ""}`}
+                hover:bg-emerald-800 transition shadow-lg
+                ${loadingVerify ? "opacity-70 cursor-not-allowed" : ""}`}
             >
               {loadingVerify ? "Verifying..." : "Verify OTP"}
             </motion.button>
           </motion.div>
         )}
 
+        {/* REGISTER LINK */}
         <p className="text-center text-slate-600 mt-6 text-sm">
           Don’t have an account?{" "}
           <Link
