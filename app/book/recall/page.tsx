@@ -3,37 +3,117 @@
 import React, { useEffect } from "react";
 import { useBookingForm } from "../context/BookingFormContext";
 import { useRouter } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
+
+/* -------------------------------
+   Types
+----------------------------------*/
+type RecallEntry = {
+  id: string;
+  mealType: string;
+  time: string;
+  foodItem: string;
+  quantity: string;
+  notes?: string;
+};
+
+const MEAL_TYPES = [
+  { value: "PRE_WAKEUP", label: "Pre-wakeup" },
+  { value: "BREAKFAST", label: "Breakfast" },
+  { value: "MID_MEAL", label: "Mid-meal" },
+  { value: "LUNCH", label: "Lunch" },
+  { value: "MID_EVENING", label: "Mid-evening" },
+  { value: "DINNER", label: "Dinner" },
+  { value: "OTHER", label: "Other" },
+];
 
 export default function RecallPage() {
-  const { form } = useBookingForm();
+  const { form, setForm } = useBookingForm();
   const router = useRouter();
 
-  /* -------------------------------------------------
-      1️⃣ BLOCK DIRECT ACCESS (NO PLAN? → GO BACK)
-  --------------------------------------------------*/
+  /* -------------------------------
+     Block access if no plan selected
+  ----------------------------------*/
   useEffect(() => {
-    if (!form.planSlug || !form.planName || !form.planPrice) {
+    if (!form.planSlug || !form.planName) {
       router.replace("/services");
     }
   }, [form]);
 
-  /* -------------------------------------------------
-      ACTIONS
-  --------------------------------------------------*/
-  function goToSlotSelection() {
+  /* -------------------------------
+     Helpers
+  ----------------------------------*/
+  function createEntry(): RecallEntry {
+    return {
+      id:
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random()}`,
+      mealType: "",
+      time: "",
+      foodItem: "",
+      quantity: "",
+      notes: "",
+    };
+  }
+
+  /* -------------------------------
+     Always keep at least ONE card
+  ----------------------------------*/
+  const recallEntries: RecallEntry[] =
+    form.recallEntries && form.recallEntries.length > 0
+      ? form.recallEntries
+      : [createEntry()];
+
+  /* -------------------------------
+     Handlers
+  ----------------------------------*/
+  function addEntry() {
+    setForm({
+      recallEntries: [...recallEntries, createEntry()],
+    });
+  }
+
+  function deleteEntry(id: string) {
+    let updated = recallEntries.filter((e) => e.id !== id);
+
+    // Always keep ONE entry minimum
+    if (updated.length === 0) updated = [createEntry()];
+
+    setForm({ recallEntries: updated });
+  }
+
+  function updateEntry(
+    id: string,
+    field: keyof Omit<RecallEntry, "id">,
+    value: string
+  ) {
+    const updated = recallEntries.map((entry) =>
+      entry.id === id ? { ...entry, [field]: value } : entry
+    );
+
+    setForm({ recallEntries: updated });
+  }
+
+  function updateUniversalNotes(value: string) {
+    setForm({ recallNotes: value });
+  }
+
+  function submitRecall() {
     router.push("/book/slot");
   }
 
   function goBack() {
-    router.push("/book/user-details"); // safer than router.back()
+    router.push("/book/user-details");
   }
 
+  /* -------------------------------
+     UI
+  ----------------------------------*/
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#f9fcfa] to-[#f1f7f3] py-10 px-4 sm:px-6 flex justify-center">
       <div className="max-w-3xl w-full bg-white rounded-2xl shadow-lg p-6 sm:p-8">
-        {/* -------------------------------------------------
-            PLAN BANNER
-        -------------------------------------------------- */}
+        {/* PLAN BANNER */}
         {form.planName && (
           <div className="mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
             <p className="font-semibold text-emerald-900 text-lg">
@@ -44,112 +124,167 @@ export default function RecallPage() {
           </div>
         )}
 
-        {/* -------------------------------------------------
-            TITLE
-        -------------------------------------------------- */}
-        <h2 className="text-2xl font-semibold text-emerald-700 mb-4">
-          Final Review
+        {/* Title */}
+        <h2 className="text-2xl font-semibold text-emerald-700 mb-2">
+          24-Hour Diet Recall
         </h2>
-
         <p className="text-sm text-slate-600 mb-6">
-          Please verify your details before continuing to slot selection.
+          Add everything you ate and drank in the last 24 hours.
         </p>
 
-        {/* -------------------------------------------------
-            DETAILS SECTIONS
-        -------------------------------------------------- */}
-        <div className="space-y-6">
-          <Section title="Personal Details">
-            <Item label="Full Name" value={form.fullName} />
-            <Item label="Mobile" value={form.mobile} />
-            <Item label="Email" value={form.email} />
-            <Item label="Date of Birth" value={form.dob} />
-            <Item label="Age" value={form.age ? form.age.toString() : "—"} />
-            <Item label="Gender" value={form.gender} />
-            <Item label="Address" value={form.address} />
-          </Section>
+        {/* Add Entry Button */}
+        <button
+          onClick={addEntry}
+          className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:brightness-110"
+        >
+          <Plus className="w-4 h-4" /> Add food entry
+        </button>
 
-          <Section title="Body Measurements">
-            <Item label="Weight" value={form.weight} />
-            <Item label="Height" value={form.height} />
-            <Item label="Neck" value={form.neck} />
-            <Item label="Waist" value={form.waist} />
-            <Item label="Hip" value={form.hip} />
-          </Section>
+        {/* Entry Cards */}
+        <div className="space-y-6 mb-8">
+          {recallEntries.map((entry, index) => (
+            <div
+              key={entry.id}
+              className="border border-slate-200 rounded-xl p-4 bg-gray-50"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-semibold text-slate-800">
+                  Entry {index + 1}
+                </h3>
 
-          <Section title="Medical Details">
-            <Item label="Medical History" value={form.medicalHistory} />
-            <Item
-              label="Appointment Concerns"
-              value={form.appointmentConcerns}
-            />
-            <Item
-              label="Reports"
-              value={
-                form.reports?.length
-                  ? `${form.reports.length} file(s)`
-                  : "No reports uploaded"
-              }
-            />
-          </Section>
+                <button
+                  onClick={() => deleteEntry(entry.id)}
+                  className="flex items-center gap-1 text-red-500 text-xs hover:text-red-600"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Remove
+                </button>
+              </div>
 
-          <Section title="Lifestyle & Habits">
-            <Item label="Bowel Movement" value={form.bowel} />
-            <Item label="Daily Food Intake" value={form.dailyFood} />
-            <Item label="Water Intake" value={form.waterIntake} />
-            <Item label="Wake Up Time" value={form.wakeUpTime} />
-            <Item label="Sleep Time" value={form.sleepTime} />
-            <Item label="Sleep Quality" value={form.sleepQuality} />
-          </Section>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {/* Meal Type */}
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Meal type
+                  </label>
+                  <select
+                    className="w-full mt-1 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    value={entry.mealType}
+                    onChange={(e) =>
+                      updateEntry(entry.id, "mealType", e.target.value)
+                    }
+                  >
+                    <option value="">Select meal type</option>
+                    {MEAL_TYPES.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Time */}
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    className="w-full mt-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    value={entry.time}
+                    onChange={(e) =>
+                      updateEntry(entry.id, "time", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Food Item */}
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Food item
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Poha"
+                    className="w-full mt-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    value={entry.foodItem}
+                    onChange={(e) =>
+                      updateEntry(entry.id, "foodItem", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Quantity */}
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Quantity / portion
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 1 bowl"
+                    className="w-full mt-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    value={entry.quantity}
+                    onChange={(e) =>
+                      updateEntry(entry.id, "quantity", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Entry Notes */}
+              <div className="mt-3">
+                <label className="text-xs font-medium text-slate-600">
+                  Notes (optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Anything special about this intake?"
+                  className="w-full mt-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  value={entry.notes ?? ""}
+                  onChange={(e) =>
+                    updateEntry(entry.id, "notes", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* -------------------------------------------------
-            NAVIGATION BUTTONS
-        -------------------------------------------------- */}
-        <div className="flex justify-between mt-8">
+        {/* UNIVERSAL NOTES SECTION */}
+        <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-8">
+          <h3 className="font-semibold text-slate-800 mb-2 text-sm">
+            Additional notes (overall)
+          </h3>
+          <p className="text-xs text-slate-500 mb-3">
+            Share anything else the dietitian should know — cravings, sleep,
+            routine, stress, hydration, eating patterns, or anything personal.
+          </p>
+          <textarea
+            rows={4}
+            placeholder="Write here..."
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+            value={form.recallNotes ?? ""}
+            onChange={(e) => updateUniversalNotes(e.target.value)}
+          />
+        </div>
+
+        {/* BUTTONS */}
+        <div className="flex justify-between">
           <button
             onClick={goBack}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm hover:bg-gray-100"
           >
             ← Back
           </button>
 
           <button
-            onClick={goToSlotSelection}
-            className="px-5 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:brightness-110"
+            onClick={submitRecall}
+            className="px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:brightness-110"
           >
-            Proceed to Slot Selection →
+            Save & Continue →
           </button>
         </div>
       </div>
     </main>
-  );
-}
-
-/* -------------------------------------------------
-    UI SUBCOMPONENTS
--------------------------------------------------- */
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl">
-      <h3 className="font-semibold text-slate-800 mb-3">{title}</h3>
-      <div className="space-y-2">{children}</div>
-    </div>
-  );
-}
-
-function Item({ label, value }: { label: string; value: any }) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-slate-600">{label}</span>
-      <span className="text-slate-900 font-medium">{value ? value : "—"}</span>
-    </div>
   );
 }

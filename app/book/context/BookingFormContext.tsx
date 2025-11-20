@@ -8,6 +8,21 @@ import React, {
   ReactNode,
 } from "react";
 
+/* ---------------------------------------
+   TYPES
+----------------------------------------*/
+
+// One recall entry in the recall form
+export type RecallEntry = {
+  id: string;
+  mealType: string;
+  foodItem: string;
+  quantity: string;
+  time: string;
+  notes?: string;
+};
+
+// Entire booking form
 export type BookingForm = {
   fullName: string | null;
   mobile: string | null;
@@ -24,8 +39,8 @@ export type BookingForm = {
   hip: string | null;
 
   medicalHistory: string | null;
-  reports?: File[];
   appointmentConcerns: string | null;
+  reports?: File[];
 
   bowel: string | null;
   dailyFood: string | null;
@@ -34,6 +49,7 @@ export type BookingForm = {
   sleepTime: string | null;
   sleepQuality: string | null;
 
+  // Plan / service
   planSlug: string | null;
   planName: string | null;
   planPrice: string | null;
@@ -41,10 +57,19 @@ export type BookingForm = {
   planPackageName: string | null;
   planPackageDuration: string | null;
 
+  // Appointment data
   appointmentMode?: string | null;
   appointmentDate?: string | null;
   appointmentTime?: string | null;
+
+  // Recall form data
+  recallEntries: RecallEntry[];
+  recallNotes: string | null;
 };
+
+/* ---------------------------------------
+   INITIAL FORM
+----------------------------------------*/
 
 const initialForm: BookingForm = {
   fullName: null,
@@ -62,8 +87,8 @@ const initialForm: BookingForm = {
   hip: null,
 
   medicalHistory: null,
-  reports: [],
   appointmentConcerns: null,
+  reports: [],
 
   bowel: null,
   dailyFood: null,
@@ -82,7 +107,15 @@ const initialForm: BookingForm = {
   appointmentMode: null,
   appointmentDate: null,
   appointmentTime: null,
+
+  // NEW recall fields
+  recallEntries: [],
+  recallNotes: null,
 };
+
+/* ---------------------------------------
+   CONTEXT
+----------------------------------------*/
 
 type ContextType = {
   form: BookingForm;
@@ -92,16 +125,23 @@ type ContextType = {
 
 const BookingFormContext = createContext<ContextType | undefined>(undefined);
 
+/* ---------------------------------------
+   PROVIDER
+----------------------------------------*/
+
 export function BookingFormProvider({ children }: { children: ReactNode }) {
   const [form, setFormState] = useState<BookingForm>(initialForm);
   const [loaded, setLoaded] = useState(false);
 
-  // Load on mount
+  // Load from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem("bookingForm");
       if (saved) {
-        setFormState({ ...initialForm, ...JSON.parse(saved) });
+        const parsed = JSON.parse(saved);
+
+        // merge saved data over initialForm
+        setFormState({ ...initialForm, ...parsed });
       }
     } catch (err) {
       console.error("Form restore error:", err);
@@ -109,9 +149,10 @@ export function BookingFormProvider({ children }: { children: ReactNode }) {
     setLoaded(true);
   }, []);
 
-  // Save on change
+  // Save to localStorage on every change
   useEffect(() => {
     if (!loaded) return;
+
     try {
       localStorage.setItem("bookingForm", JSON.stringify(form));
     } catch (err) {
@@ -119,16 +160,25 @@ export function BookingFormProvider({ children }: { children: ReactNode }) {
     }
   }, [form, loaded]);
 
+  /* ---------------------------------------
+     UPDATE FORM (SAFE MERGE)
+  ----------------------------------------*/
   function setForm(data: Partial<BookingForm>) {
-    setFormState((prev) => ({ ...prev, ...data }));
+    setFormState((prev) => ({
+      ...prev,
+      ...data,
+    }));
   }
 
+  /* ---------------------------------------
+     RESET FORM
+  ----------------------------------------*/
   function resetForm() {
     setFormState(initialForm);
     localStorage.removeItem("bookingForm");
   }
 
-  if (!loaded) return null; // prevent hydration mismatch
+  if (!loaded) return null; // Prevent hydration mismatch
 
   return (
     <BookingFormContext.Provider value={{ form, setForm, resetForm }}>
@@ -137,9 +187,13 @@ export function BookingFormProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/* ---------------------------------------
+   HOOK
+----------------------------------------*/
 export function useBookingForm() {
   const ctx = useContext(BookingFormContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error("useBookingForm must be used inside BookingFormProvider");
+  }
   return ctx;
 }
