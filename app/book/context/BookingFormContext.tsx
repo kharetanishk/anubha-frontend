@@ -62,6 +62,9 @@ export type BookingForm = {
   appointmentDate?: string | null;
   appointmentTime?: string | null;
 
+  slotId: string | null;
+  patientId: string | null;
+
   // Recall form data
   recallEntries: RecallEntry[];
   recallNotes: string | null;

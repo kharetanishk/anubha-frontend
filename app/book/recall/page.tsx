@@ -100,6 +100,12 @@ export default function RecallPage() {
   }
 
   function submitRecall() {
+    const fakePatientId = `patient-${Date.now()}`;
+
+    setForm({
+      patientId: fakePatientId,
+    });
+
     router.push("/book/slot");
   }
 

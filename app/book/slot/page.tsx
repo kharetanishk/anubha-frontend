@@ -264,7 +264,18 @@ export default function SlotPage() {
                   <button
                     key={slot}
                     disabled={disabled}
-                    onClick={() => setSelectedTime(slot)}
+                    onClick={() => {
+                      setSelectedTime(slot);
+
+                      setForm({
+                        appointmentMode: mode,
+                        appointmentDate: selectedDate!.toISOString(),
+                        appointmentTime: slot,
+
+                        // ⭐ THIS IS WHERE YOU STORE slotId
+                        slotId: `${selectedDate?.toISOString()}-${slot}`,
+                      });
+                    }}
                     className={`w-full px-4 py-4 rounded-lg border text-sm flex justify-between transition ${
                       disabled
                         ? "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed"
