@@ -58,6 +58,7 @@ export default function EditSlotsPage() {
     existingSlotWarnings: string[];
   } | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [dayOffError, setDayOffError] = useState<string | null>(null);
 
   // Auth check
   useEffect(() => {
@@ -254,10 +255,18 @@ export default function EditSlotsPage() {
 
     try {
       setAddingDayOff(true);
-      await addDayOff({
+      setDayOffError(null);
+      const res = await addDayOff({
         date: dayOffDate,
         reason: dayOffReason || undefined,
       });
+
+      if (!res.success) {
+        const reason = res.message || "Failed to mark this day off.";
+        setDayOffError(reason);
+        toast.error(`Failed to mark this day off: ${reason}`);
+        return;
+      }
 
       setSuccessMessage(
         `Day off added successfully${dayOffReason ? `: ${dayOffReason}` : ""}`
@@ -270,8 +279,13 @@ export default function EditSlotsPage() {
       await loadDayOffs();
     } catch (error: any) {
       console.error("Failed to add day off:", error);
-      const errorMsg =
-        error?.response?.data?.message || "Failed to add day off";
+      const reason =
+        error?.response?.data?.message ||
+        error?.message;
+      const errorMsg = reason
+        ? `Failed to mark this day off: ${reason}`
+        : "Failed to mark this day off.";
+      setDayOffError(reason || "Failed to mark this day off.");
       toast.error(errorMsg);
     } finally {
       setAddingDayOff(false);
@@ -680,6 +694,12 @@ export default function EditSlotsPage() {
                 <CalendarDays className="w-5 h-5" />
                 Day Offs ({dayOffs.length})
               </h3>
+
+              {dayOffError && (
+                <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  Failed to mark this day off: {dayOffError}
+                </div>
+              )}
 
               {loadingDayOffs ? (
                 <div className="flex items-center justify-center py-8">

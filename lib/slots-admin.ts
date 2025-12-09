@@ -26,7 +26,7 @@ export interface AddDayOffRequest {
 export interface AddDayOffResponse {
   success: boolean;
   message: string;
-  data: DayOff;
+  data?: DayOff;
 }
 
 export interface RemoveDayOffResponse {
@@ -69,8 +69,21 @@ export async function createSlots(
 export async function addDayOff(
   data: AddDayOffRequest
 ): Promise<AddDayOffResponse> {
-  const res = await api.post<AddDayOffResponse>("slots/admin/day-off", data);
-  return res.data;
+  try {
+    const res = await api.post<AddDayOffResponse>("slots/admin/day-off", data);
+    return res.data;
+  } catch (err: any) {
+    // Normalize server error message for UI to display
+    const serverMessage =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "Failed to add day off";
+    return {
+      success: false,
+      message: serverMessage,
+    };
+  }
 }
 
 // Remove a day off (mark as day in)
