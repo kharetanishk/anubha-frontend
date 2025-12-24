@@ -180,3 +180,56 @@ export async function verifyAddEmailOtp(data: { email: string; otp: string }) {
     throw error;
   }
 }
+
+/* ---------------- UNIFIED AUTH (NEW) ---------------- */
+export async function signupInitiate(data: { name: string; phone: string; email: string }) {
+    try {
+        if (!data || !data.name || !data.phone || !data.email) {
+            throw new Error("All fields are required");
+        }
+        const response = await api.post("auth/signup/initiate", data);
+        return response.data;
+    } catch (error: any) {
+        console.error("[API] Signup Initiate Error:", error?.response?.data || error?.message);
+        throw error;
+    }
+}
+
+export async function signupComplete(data: { name: string; phone: string; email: string; password: string; otp: string }) {
+    try {
+        if (!data || !data.name || !data.phone || !data.email || !data.password || !data.otp) {
+            throw new Error("All fields are required");
+        }
+        const response = await api.post("auth/signup/complete", data);
+        return response.data;
+    } catch (error: any) {
+         console.error("[API] Signup Complete Error:", error?.response?.data || error?.message);
+        throw error;
+    }
+}
+
+export async function loginInitiate(data: { phone: string; email: string }) {
+     try {
+        if (!data || !data.phone || !data.email) {
+            throw new Error("Phone and email are required");
+        }
+        const response = await api.post("auth/login/initiate", data);
+        return response.data;
+    } catch (error: any) {
+        console.error("[API] Login Initiate Error:", error?.response?.data || error?.message);
+        throw error;
+    }
+}
+
+export async function loginComplete(data: { phone: string; email: string; otp: string }) {
+     try {
+        if (!data || !data.phone || !data.email || !data.otp) {
+            throw new Error("All fields are required");
+        }
+        const response = await api.post("auth/login/complete", data);
+        return response.data;
+    } catch (error: any) {
+        console.error("[API] Login Complete Error:", error?.response?.data || error?.message);
+        throw error;
+    }
+}
