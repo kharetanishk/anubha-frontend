@@ -1,12 +1,25 @@
 import axios from "axios";
 
+// Default to localhost:4001 if NEXT_PUBLIC_API_URL is not set (development)
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined"
+    ? "http://localhost:4001/api"
+    : "http://localhost:4001/api");
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 30000, // 30 second timeout (increased for OTP requests that involve external APIs)
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// Log API base URL in development
+if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
+  console.log("[API] Base URL:", API_BASE_URL);
+}
 
 // Track retry attempts to prevent infinite loops
 const retryAttempts = new Map<string, number>();
@@ -90,8 +103,12 @@ api.interceptors.response.use(
       }
     } else if (axiosError.request) {
       // Request was made but no response received
-      // Only log if it's not a network error (which might be expected)
-      if (axiosError.message && !axiosError.message.includes("Network Error")) {
+      // Don't log timeout errors as they're handled by individual functions
+      if (
+        axiosError.message &&
+        !axiosError.message.includes("Network Error") &&
+        !axiosError.message.includes("timeout")
+      ) {
         console.error("Network error:", axiosError.message);
       }
     } else {

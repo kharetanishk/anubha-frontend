@@ -118,9 +118,17 @@ export async function sendLinkPhoneEmailOtp(data: {
     if (!data || !data.email || !data.phone) {
       throw new Error("Email and phone are required");
     }
-    const response = await api.post("auth/link-phone/send-email-otp", data);
+    const response = await api.post("auth/link-phone/send-email-otp", data, {
+      timeout: 30000, // 30 seconds for OTP requests
+    });
     return response.data;
   } catch (error: any) {
+    // Handle timeout specifically
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error(
+        "Request timed out. This may take longer due to external service delays. Please try again."
+      );
+    }
     console.error(
       "[API] Send link phone email OTP error:",
       error?.response?.data || error?.message
@@ -154,9 +162,17 @@ export async function sendAddEmailOtp(data: { email: string }) {
     if (!data || !data.email) {
       throw new Error("Email is required");
     }
-    const response = await api.post("auth/add-email/send-otp", data);
+    const response = await api.post("auth/add-email/send-otp", data, {
+      timeout: 30000, // 30 seconds for OTP requests
+    });
     return response.data;
   } catch (error: any) {
+    // Handle timeout specifically
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error(
+        "Request timed out. This may take longer due to external service delays. Please try again."
+      );
+    }
     console.error(
       "[API] Send add email OTP error:",
       error?.response?.data || error?.message
@@ -182,54 +198,181 @@ export async function verifyAddEmailOtp(data: { email: string; otp: string }) {
 }
 
 /* ---------------- UNIFIED AUTH (NEW) ---------------- */
-export async function signupInitiate(data: { name: string; phone: string; email: string }) {
-    try {
-        if (!data || !data.name || !data.phone || !data.email) {
-            throw new Error("All fields are required");
-        }
-        const response = await api.post("auth/signup/initiate", data);
-        return response.data;
-    } catch (error: any) {
-        console.error("[API] Signup Initiate Error:", error?.response?.data || error?.message);
-        throw error;
+export async function signupInitiate(data: {
+  name: string;
+  phone: string;
+  email: string;
+}) {
+  try {
+    if (!data || !data.name || !data.phone || !data.email) {
+      throw new Error("All fields are required");
     }
+    const response = await api.post("auth/signup/initiate", data, {
+      timeout: 30000, // 30 seconds for OTP requests
+    });
+    return response.data;
+  } catch (error: any) {
+    // Handle timeout specifically
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error(
+        "Request timed out. This may take longer due to external service delays. Please try again."
+      );
+    }
+    console.error(
+      "[API] Signup Initiate Error:",
+      error?.response?.data || error?.message
+    );
+    throw error;
+  }
 }
 
-export async function signupComplete(data: { name: string; phone: string; email: string; password: string; otp: string }) {
-    try {
-        if (!data || !data.name || !data.phone || !data.email || !data.password || !data.otp) {
-            throw new Error("All fields are required");
-        }
-        const response = await api.post("auth/signup/complete", data);
-        return response.data;
-    } catch (error: any) {
-         console.error("[API] Signup Complete Error:", error?.response?.data || error?.message);
-        throw error;
+export async function signupComplete(data: {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+  otp: string;
+}) {
+  try {
+    if (
+      !data ||
+      !data.name ||
+      !data.phone ||
+      !data.email ||
+      !data.password ||
+      !data.otp
+    ) {
+      throw new Error("All fields are required");
     }
+    const response = await api.post("auth/signup/complete", data);
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "[API] Signup Complete Error:",
+      error?.response?.data || error?.message
+    );
+    throw error;
+  }
 }
 
 export async function loginInitiate(data: { phone: string; email: string }) {
-     try {
-        if (!data || !data.phone || !data.email) {
-            throw new Error("Phone and email are required");
-        }
-        const response = await api.post("auth/login/initiate", data);
-        return response.data;
-    } catch (error: any) {
-        console.error("[API] Login Initiate Error:", error?.response?.data || error?.message);
-        throw error;
+  if (!data || !data.phone || !data.email) {
+    throw new Error("Phone and email are required");
+  }
+
+  try {
+    const response = await api.post("auth/login/initiate", data, {
+      timeout: 30000, // 30 seconds for OTP requests
+    });
+    return response.data;
+  } catch (error: any) {
+    // Handle timeout specifically
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error(
+        "Request timed out. This may take longer due to external service delays. Please try again."
+      );
     }
+
+    // Network error - backend not reachable
+    if (!error.response) {
+      throw new Error(
+        "Cannot connect to server. Please check if backend is running."
+      );
+    }
+
+    // API returned error
+    const message = error.response?.data?.message || "Failed to send OTP";
+    throw new Error(message);
+  }
 }
 
-export async function loginComplete(data: { phone: string; email: string; otp: string }) {
-     try {
-        if (!data || !data.phone || !data.email || !data.otp) {
-            throw new Error("All fields are required");
-        }
-        const response = await api.post("auth/login/complete", data);
-        return response.data;
-    } catch (error: any) {
-        console.error("[API] Login Complete Error:", error?.response?.data || error?.message);
-        throw error;
+export async function loginComplete(data: {
+  phone: string;
+  email: string;
+  otp: string;
+}) {
+  try {
+    if (!data || !data.phone || !data.email || !data.otp) {
+      throw new Error("All fields are required");
     }
+    const response = await api.post("auth/login/complete", data);
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "[API] Login Complete Error:",
+      error?.response?.data || error?.message
+    );
+    throw error;
+  }
+}
+
+/* ---------------- PASSWORD-BASED AUTH ---------------- */
+export async function loginWithPassword(data: {
+  identifier: string;
+  password: string;
+}) {
+  try {
+    if (!data || !data.identifier || !data.password) {
+      throw new Error("Email/phone and password are required");
+    }
+    const response = await api.post("auth/login", data);
+    return response.data;
+  } catch (error: any) {
+    if (!error.response) {
+      throw new Error(
+        "Cannot connect to server. Please check if backend is running."
+      );
+    }
+    const message = error.response?.data?.message || "Login failed";
+    throw new Error(message);
+  }
+}
+
+export async function forgotPassword(email: string) {
+  try {
+    if (!email || !email.trim()) {
+      throw new Error("Email is required");
+    }
+    const response = await api.post(
+      "auth/forgot-password",
+      { email },
+      {
+        timeout: 30000, // 30 seconds for email sending
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    // Handle timeout specifically
+    if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error(
+        "Request timed out. This may take longer due to external service delays. Please try again."
+      );
+    }
+    if (!error.response) {
+      throw new Error(
+        "Cannot connect to server. Please check if backend is running."
+      );
+    }
+    const message =
+      error.response?.data?.message || "Failed to send reset email";
+    throw new Error(message);
+  }
+}
+
+export async function resetPassword(token: string, password: string) {
+  try {
+    if (!token || !password) {
+      throw new Error("Token and password are required");
+    }
+    const response = await api.post("auth/reset-password", { token, password });
+    return response.data;
+  } catch (error: any) {
+    if (!error.response) {
+      throw new Error(
+        "Cannot connect to server. Please check if backend is running."
+      );
+    }
+    const message = error.response?.data?.message || "Failed to reset password";
+    throw new Error(message);
+  }
 }
