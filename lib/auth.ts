@@ -3,7 +3,8 @@ import api from "./api";
 interface User {
   id: string;
   name: string;
-  phone: string;
+  phone: string | null;
+  email: string | null;
   role: "USER" | "ADMIN";
 }
 
@@ -13,6 +14,12 @@ interface VerifyOtpResponse {
   role: string;
   user: User;
   owner?: User; // only if API sometimes returns owner
+}
+
+interface SignupCompleteResponse {
+  success: boolean;
+  message: string;
+  user: User;
 }
 
 export async function sendRegisterOtp(data: { name: string; phone: string }) {
@@ -232,7 +239,7 @@ export async function signupComplete(data: {
   email: string;
   password: string;
   otp: string;
-}) {
+}): Promise<SignupCompleteResponse> {
   try {
     if (
       !data ||
@@ -244,7 +251,10 @@ export async function signupComplete(data: {
     ) {
       throw new Error("All fields are required");
     }
-    const response = await api.post("auth/signup/complete", data);
+    const response = await api.post<SignupCompleteResponse>(
+      "auth/signup/complete",
+      data
+    );
     return response.data;
   } catch (error: any) {
     console.error(

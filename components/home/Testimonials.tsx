@@ -6,6 +6,11 @@ import TestimonialsClient, {
 } from "@/components/home/TestimonialsClient";
 import api from "@/lib/api";
 
+interface TestimonialsResponse {
+  success: boolean;
+  testimonials: Testimonial[];
+}
+
 export default function Testimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,13 +26,9 @@ export default function Testimonials() {
           );
         }
 
-        const response = await api.get("/testimonials");
-        if (response.data.success && response.data.testimonials) {
-          setTestimonials(response.data.testimonials);
-        } else {
-          console.warn("Testimonials API returned unsuccessful response:", response.data);
-          setTestimonials([]);
-        }
+        const response = await api.get<TestimonialsResponse>("/testimonials");
+        console.log(`testimonials: ${JSON.stringify(response.data)}`);
+        setTestimonials(response.data.testimonials);
       } catch (error: any) {
         console.error("Failed to fetch testimonials:", {
           message: error.message,

@@ -242,9 +242,41 @@ export default function PaymentPage() {
             router.push("/profile");
           }, 1000);
         } else {
-          throw new Error(
-            verifyResponse.error || "Payment verification failed"
-          );
+          // CRITICAL: Handle timeout separately - it's not a failure
+          if (
+            verifyResponse.timeout &&
+            verifyResponse.error === "VERIFICATION_TIMEOUT"
+          ) {
+            console.warn(
+              "[PAYMENT] Verification timeout - payment may still be processing"
+            );
+            // Timeout means verification API didn't respond in time
+            // BUT webhook may still process payment successfully
+            // Show appropriate message to user
+            safeToast(
+              "error",
+              "Payment verification is taking longer than expected. Your payment may still be processing. Please check your appointments page in a few moments.",
+              8000 // Show for 8 seconds
+            );
+            setError(
+              "Payment verification timeout. Please check your appointments page - your payment may still be processing."
+            );
+            setErrorType("network"); // Use "network" type for timeout (timeout is a network-level issue)
+            setProcessing(false);
+            // CRITICAL: Do NOT allow immediate retry on timeout
+            // User should check appointment status first
+            paymentInitiatedRef.current = false;
+
+            // Redirect to profile page after delay so user can check appointment status
+            setTimeout(() => {
+              router.push("/profile");
+            }, 3000);
+          } else {
+            // Actual verification failure (not timeout)
+            throw new Error(
+              verifyResponse.error || "Payment verification failed"
+            );
+          }
         }
       } catch (error: any) {
         console.error("[PAYMENT] Payment verification error:", error);

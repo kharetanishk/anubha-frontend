@@ -1,23 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import { resetPassword } from "@/lib/auth";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get("token");
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
     newPassword?: string;
     confirmPassword?: string;
+    general?: string;
   }>({});
 
   // Check if token is missing
@@ -50,8 +54,27 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    // TODO: Submit to backend API in STEP-3
-    toast("Reset Password functionality coming soon!", { icon: "🔜" });
+    if (!token) {
+      setErrors({ general: "Invalid reset token" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await resetPassword(token, newPassword);
+      toast.success("Password reset successfully! Redirecting to login...");
+
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch (error: any) {
+      const message = error.message || "Failed to reset password";
+      setErrors({ general: message });
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,6 +117,13 @@ export default function ResetPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {errors.general && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-800 text-sm">{errors.general}</p>
+                </div>
+              )}
+
               <div>
                 <label className="text-slate-700 font-medium text-sm block mb-2">
                   New Password
@@ -187,12 +217,12 @@ export default function ResetPasswordPage() {
 
               <motion.button
                 whileTap={{ scale: 0.96 }}
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: loading ? 1 : 1.03 }}
                 type="submit"
-                className="w-full bg-emerald-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:bg-emerald-800 transition opacity-70 cursor-not-allowed"
-                disabled
+                disabled={loading}
+                className="w-full bg-emerald-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:bg-emerald-800 transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Reset Password (Coming Soon)
+                {loading ? "Resetting Password..." : "Reset Password"}
               </motion.button>
 
               <div className="text-center">

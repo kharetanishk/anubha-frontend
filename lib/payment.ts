@@ -18,6 +18,7 @@ export interface VerifyPaymentResponse {
   message?: string;
   alreadyConfirmed?: boolean;
   error?: string;
+  timeout?: boolean; // Indicates if error was due to timeout (webhook may still process payment)
 }
 
 export interface GetExistingOrderResponse {
@@ -196,7 +197,25 @@ export async function verifyPayment(data: {
       message: error?.message,
       status: error?.response?.status,
       data: error?.response?.data,
+      code: error?.code,
     });
+
+    // CRITICAL: Detect timeout errors specifically
+    // Timeout means verification is pending - webhook may still process it
+    const isTimeout =
+      error?.code === "ECONNABORTED" ||
+      error?.message?.includes("timeout") ||
+      error?.message?.includes("TIMEOUT") ||
+      error?.response?.status === 503;
+
+    if (isTimeout) {
+      // Timeout is not a failure - webhook may still process payment
+      return {
+        success: false,
+        error: "VERIFICATION_TIMEOUT", // Special error code for timeout
+        timeout: true,
+      };
+    }
 
     // Extract error message from response
     const errorMessage =
@@ -208,6 +227,7 @@ export async function verifyPayment(data: {
     return {
       success: false,
       error: errorMessage,
+      timeout: false,
     };
   }
 }

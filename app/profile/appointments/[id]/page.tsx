@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Download,
   Receipt,
+  FilePlus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +32,7 @@ import BabySolidPlanOptions from "@/components/appointments/BabySolidPlanOptions
 import {
   getInvoiceByAppointmentId,
   downloadInvoice,
+  generateInvoice,
   type Invoice,
 } from "@/lib/invoice";
 
@@ -105,6 +107,8 @@ export default function UserAppointmentDetailsPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [generatingInvoice, setGeneratingInvoice] = useState(false);
+  const [invoiceError, setInvoiceError] = useState(false);
 
   const appointmentId = params.id as string;
 
@@ -148,16 +152,53 @@ export default function UserAppointmentDetailsPage() {
 
   async function fetchInvoice() {
     setLoadingInvoice(true);
+    setInvoiceError(false);
     try {
       const response = await getInvoiceByAppointmentId(appointmentId);
       if (response.success && response.invoice) {
         setInvoice(response.invoice);
+        setInvoiceError(false);
+      } else {
+        // Invoice not found - this is expected, user can generate it
+        setInvoice(null);
+        setInvoiceError(false); // Not an error - invoice just doesn't exist yet
       }
     } catch (error: any) {
       console.error("Failed to fetch invoice:", error);
-      // Don't show error toast - invoice may not exist yet
+      setInvoice(null);
+      // Only set error for non-404 errors
+      if (error?.response?.status !== 404) {
+        setInvoiceError(true);
+      } else {
+        setInvoiceError(false); // 404 means invoice doesn't exist yet
+      }
     } finally {
       setLoadingInvoice(false);
+    }
+  }
+
+  async function handleGenerateInvoice() {
+    if (!appointmentId) return;
+
+    setGeneratingInvoice(true);
+    setInvoiceError(false);
+    try {
+      const response = await generateInvoice(appointmentId);
+      if (response.success && response.invoice) {
+        setInvoice(response.invoice);
+        toast.success("Invoice generated successfully");
+        // Refresh invoice to get full details
+        await fetchInvoice();
+      } else {
+        toast.error(response.error || "Failed to generate invoice");
+        setInvoiceError(true);
+      }
+    } catch (error: any) {
+      console.error("Failed to generate invoice:", error);
+      toast.error(error.message || "Failed to generate invoice");
+      setInvoiceError(true);
+    } finally {
+      setGeneratingInvoice(false);
     }
   }
 
@@ -496,15 +537,58 @@ export default function UserAppointmentDetailsPage() {
                     ) : (
                       <>
                         <Download className="w-4 h-4" />
-                        Download Invoice
+                        Get Invoice
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : invoiceError ? (
+                <div className="text-center py-8">
+                  <div className="text-slate-600 mb-4">
+                    Invoice generation failed. Please try again or contact
+                    support.
+                  </div>
+                  <button
+                    onClick={handleGenerateInvoice}
+                    disabled={generatingInvoice}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {generatingInvoice ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <FilePlus className="w-4 h-4" />
+                        Try Again
                       </>
                     )}
                   </button>
                 </div>
               ) : (
-                <div className="text-center py-8 text-slate-500">
-                  Invoice is being generated. Please refresh the page in a
-                  moment.
+                <div className="text-center py-8">
+                  <div className="text-slate-600 mb-4">
+                    Invoice not generated yet. Click the button below to
+                    generate your invoice.
+                  </div>
+                  <button
+                    onClick={handleGenerateInvoice}
+                    disabled={generatingInvoice}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {generatingInvoice ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating Invoice...
+                      </>
+                    ) : (
+                      <>
+                        <FilePlus className="w-4 h-4" />
+                        Generate Invoice
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
